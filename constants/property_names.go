@@ -3,5 +3,5 @@ package constants
 var (
 	ImageUrl      = "image-url"
 	BaseDirectory = "base-directory"
-	DBUrl = "database-url"
+	DBUrl         = "database-url"
 )

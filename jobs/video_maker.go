@@ -37,7 +37,7 @@ func (g VideoMakerJob) Run() {
 	}
 
 	log.Printf("Prepared frame order in file %s", file)
-	targetVideoDirectory := filepath.Join(g.RootDirectory, subDirectoryName)
+	targetVideoDirectory := filepath.Join(g.RootDirectory, g.TimelapseType.Directory, subDirectoryName)
 	err = os.MkdirAll(targetVideoDirectory, os.ModePerm)
 	if err != nil {
 		log.Printf("Error while creating directory %s", targetVideoDirectory)
@@ -64,6 +64,7 @@ func (g VideoMakerJob) Run() {
 		Input(file, ffmpeg.KwArgs{"r": "5/1", "safe": 0, "f": "concat"}).
 		Output(videoFilePath, ffmpeg.KwArgs{"crf": 28, "s": "1280x720", "vcodec": "libx265"}).
 		OverWriteOutput().
+		WithOutput(os.Stdout, os.Stdout).
 		Run()
 	if err != nil {
 		log.Print("Error while creating video from images")
@@ -97,8 +98,9 @@ func createFrameOrderFile(imagesToCollectDirectory string) (string, error) {
 
 	writer := bufio.NewWriter(temp)
 	defer writer.Flush()
+	abs, _ := filepath.Abs(imagesToCollectDirectory)
 	for _, data := range dir {
-		_, _ = writer.WriteString(fmt.Sprintf("file '%s'\n", filepath.Join(imagesToCollectDirectory, data.Name())))
+		_, _ = writer.WriteString(fmt.Sprintf("file '%s'\n", filepath.Join(abs, data.Name())))
 		_, _ = writer.WriteString("duration 0.2\n")
 	}
 

@@ -9,18 +9,16 @@ import (
 	"sync"
 	"time"
 	"timelapse_maker/constants"
-	"timelapse_maker/cron" // Using fork https://github.com/rissw/cron.git cause original doesn't support Quartz specification (last-of-day etc.)
+	"timelapse_maker/cron"
 	"timelapse_maker/jobs"
 	"timelapse_maker/utils"
 )
 
 var (
-	propertyManager = &utils.PropertyManager{}
-	imageDownloader = &utils.ImageDownloader{Url: propertyManager.GetProperty(constants.ImageUrl)}
-	dbPool          = initDataBasePool(propertyManager.GetProperty(constants.DBUrl))
-	baseDirectory   = propertyManager.GetProperty(
-		constants.BaseDirectory,
-	)
+	propertyManager     = &utils.PropertyManager{}
+	imageDownloader     = &utils.ImageDownloader{Url: propertyManager.GetProperty(constants.ImageUrl)}
+	dbPool              = initDataBasePool(propertyManager.GetProperty(constants.DBUrl))
+	baseDirectory       = propertyManager.GetProperty(constants.BaseDirectory)
 	imagesBaseDirectory = filepath.Join(baseDirectory, "images")
 
 	downloadJobs = [4]struct {

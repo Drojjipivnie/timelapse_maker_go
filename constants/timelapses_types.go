@@ -12,7 +12,7 @@ type TimelapseType struct {
 }
 
 var Day = TimelapseType{"DAY", "days_of_year", func(t time.Time) string {
-	return t.Format("02-01-2006")
+	return t.Format("2006-01-02")
 }}
 var Week = TimelapseType{"WEEK", "weeks_of_year", func(t time.Time) string {
 	year, week := t.ISOWeek()
