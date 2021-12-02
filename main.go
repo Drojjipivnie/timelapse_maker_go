@@ -31,15 +31,18 @@ var (
 		{"0 0 8,12,16,20 * * ?", jobs.ImageDownloadJob{RootDirectory: imagesBaseDirectory, TimelapseType: &constants.Quarter, ImageDownloader: imageDownloader}},
 	}
 
+	loggingProgressListener = func(p jobs.FFMpegProgress) {
+		log.Printf("Frame:%d; Fps:%s; Size:%s; Time Passed: %s; Status: %s", p.Frame, p.Fps, byteCountSI(p.TotalSize), time.Duration(uint64(p.OutTimeMs)*1000).String(), p.Status.Name)
+	}
 	videosBaseDirectory = filepath.Join(baseDirectory, "videos")
 	videoJobs           = [4]struct {
 		string
 		jobs.VideoMakerJob
 	}{
-		{"0 20 22 ? * *", jobs.VideoMakerJob{RootDirectory: videosBaseDirectory, ImagesRootDirectory: imagesBaseDirectory, TimelapseType: &constants.Day, DBPool: dbPool}},
-		{"0 15 22 ? * SUN", jobs.VideoMakerJob{RootDirectory: videosBaseDirectory, ImagesRootDirectory: imagesBaseDirectory, TimelapseType: &constants.Week, DBPool: dbPool}},
-		{"0 10 22 L * ?", jobs.VideoMakerJob{RootDirectory: videosBaseDirectory, ImagesRootDirectory: imagesBaseDirectory, TimelapseType: &constants.Month, DBPool: dbPool}},
-		{"0 5 22 L MAR,JUN,SEP,DEC ?", jobs.VideoMakerJob{RootDirectory: videosBaseDirectory, ImagesRootDirectory: imagesBaseDirectory, TimelapseType: &constants.Quarter, DBPool: dbPool}},
+		{"0 20 22 ? * *", jobs.VideoMakerJob{RootDirectory: videosBaseDirectory, ImagesRootDirectory: imagesBaseDirectory, TimelapseType: &constants.Day, DBPool: dbPool, ProgressListener: loggingProgressListener}},
+		{"0 15 22 ? * SUN", jobs.VideoMakerJob{RootDirectory: videosBaseDirectory, ImagesRootDirectory: imagesBaseDirectory, TimelapseType: &constants.Week, DBPool: dbPool, ProgressListener: loggingProgressListener}},
+		{"0 10 22 L * ?", jobs.VideoMakerJob{RootDirectory: videosBaseDirectory, ImagesRootDirectory: imagesBaseDirectory, TimelapseType: &constants.Month, DBPool: dbPool, ProgressListener: loggingProgressListener}},
+		{"0 5 22 L MAR,JUN,SEP,DEC ?", jobs.VideoMakerJob{RootDirectory: videosBaseDirectory, ImagesRootDirectory: imagesBaseDirectory, TimelapseType: &constants.Quarter, DBPool: dbPool, ProgressListener: loggingProgressListener}},
 	}
 )
 
@@ -82,4 +85,18 @@ func initDataBasePool(dbURL string) *pgxpool.Pool {
 	}
 	log.Print("Connected!")
 	return pool
+}
+
+func byteCountSI(b uint32) string {
+	const unit = 1000
+	if b < unit {
+		return fmt.Sprintf("%d B", b)
+	}
+	div, exp := uint32(unit), 0
+	for n := b / unit; n >= unit; n /= unit {
+		div *= unit
+		exp++
+	}
+	return fmt.Sprintf("%.1f %cB",
+		float64(b)/float64(div), "kMGTPE"[exp])
 }
