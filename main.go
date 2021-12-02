@@ -32,7 +32,7 @@ var (
 	}
 
 	loggingProgressListener = func(p jobs.FFMpegProgress) {
-		log.Printf("Frame:%d; Fps:%s; Size:%s; Time Passed: %s; Status: %s", p.Frame, p.Fps, byteCountSI(p.TotalSize), time.Duration(uint64(p.OutTimeMs)*1000).String(), p.Status.Name)
+		log.Printf("Frame:%d; Fps:%s; Size:%s; Time Passed: %s; Status: %s", p.Frame, p.Fps, byteCountSI(p.TotalSize), (time.Duration(p.OutTimeMs) * time.Millisecond).String(), p.Status.Name)
 	}
 	videosBaseDirectory = filepath.Join(baseDirectory, "videos")
 	videoJobs           = [4]struct {
