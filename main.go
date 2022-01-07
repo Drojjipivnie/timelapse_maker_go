@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"log"
+	"os"
+	"os/signal"
 	"path/filepath"
-	"sync"
+	"syscall"
 	"time"
 	"timelapse_maker/constants"
 	"timelapse_maker/cron"
@@ -32,7 +34,7 @@ var (
 	}
 
 	loggingProgressListener = func(p jobs.FFMpegProgress) {
-		log.Printf("Frame:%d; Fps:%s; Size:%s; Time Passed: %s; Status: %s", p.Frame, p.Fps, byteCountSI(p.TotalSize), (time.Duration(p.OutTimeMs) * time.Millisecond).String(), p.Status.Name)
+		log.Printf("Frame:%d; Fps:%s; Size:%s; Time Passed: %s; Status: %s", p.Frame, p.Fps, byteCountSI(p.TotalSize), (time.Duration(p.OutTimeMc) * time.Microsecond).String(), p.Status.Name)
 	}
 	videosBaseDirectory = filepath.Join(baseDirectory, "videos")
 	videoJobs           = [4]struct {
@@ -47,12 +49,12 @@ var (
 )
 
 func main() {
-	defer dbPool.Close()
+	defer func() {
+		dbPool.Close()
+		log.Print("Database pool closed")
+	}()
 
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds)
-
-	var wg sync.WaitGroup
-	wg.Add(1)
 
 	location, _ := time.LoadLocation("Europe/Moscow")
 
@@ -73,9 +75,13 @@ func main() {
 
 	c.Start()
 
-	log.Printf("Started...")
+	log.Print("Started...")
 
-	wg.Wait()
+	wait := make(chan os.Signal, 1)
+	signal.Notify(wait, os.Interrupt, syscall.SIGTERM, os.Kill)
+
+	log.Printf("Got signal %s", <-wait)
+	log.Print("Exiting...")
 }
 
 func initDataBasePool(dbURL string) *pgxpool.Pool {

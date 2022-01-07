@@ -28,7 +28,7 @@ type FFMpegProgress struct {
 	Fps        string
 	Bitrate    uint32 //bit per second
 	TotalSize  uint32 //bytes
-	OutTimeMs  uint32 //millis passed
+	OutTimeMc  uint32 //micros passed
 	DupFrames  uint8
 	DropFrames uint8
 	Speed      string
@@ -149,7 +149,7 @@ func (g VideoMakerJob) saveInformationToDatabase(path string) error {
 	defer conn.Release()
 
 	row := conn.QueryRow(context.Background(),
-		"INSERT INTO \"lig2-test\".videos (name, type, file_path, uploaded) VALUES ($1, $2, $3, $4) RETURNING id",
+		"INSERT INTO \"lig2\".videos (name, type, file_path, uploaded) VALUES ($1, $2, $3, $4) RETURNING id",
 		parent, g.TimelapseType.Name, abs, false)
 	var id uint64
 	err = row.Scan(&id)
@@ -204,10 +204,10 @@ func (p *FFMpegProgress) parseLine(in string) bool {
 		return false
 	case "out_time_ms":
 		if value[0] == '-' {
-			p.OutTimeMs = 0
+			p.OutTimeMc = 0
 		} else {
 			parseInt, _ := strconv.ParseInt(value, 10, 32)
-			p.OutTimeMs = uint32(parseInt)
+			p.OutTimeMc = uint32(parseInt)
 		}
 		return false
 	case "dup_frames":
