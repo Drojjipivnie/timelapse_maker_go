@@ -35,7 +35,7 @@ func (g ImageDownloadJob) Run() {
 		log.Printf("Error occured while touching file %s. %s", absoluteFilePath, err.Error())
 	}
 
-	bytesWritten, err := io.Copy(file, bytes.NewReader(byteArray))
+	bytesWritten, err := io.Copy(file, bytes.NewReader(*byteArray))
 	if err != nil {
 		log.Printf("Error occured while saving image to file: %s", err.Error())
 	} else {

@@ -24,7 +24,7 @@ type ImageDownloader struct {
 	ConnectTimeout int
 }
 
-func (c *ImageDownloader) DownloadAsByteArray() ([]byte, error) {
+func (c *ImageDownloader) DownloadAsByteArray() (*[]byte, error) {
 	mutex.Lock()
 	defer mutex.Unlock()
 
@@ -41,12 +41,12 @@ func (c *ImageDownloader) DownloadAsByteArray() ([]byte, error) {
 			cachedBytes = bytes
 			cachedTill = now.Add(cachedDuration)
 
-			return bytes, err
+			return &bytes, err
 		} else {
 			return nil, errors.New(fmt.Sprintf("got status %d", response.StatusCode))
 		}
 	} else {
 		log.Print("Returning cached bytes")
-		return cachedBytes, nil
+		return &cachedBytes, nil
 	}
 }
